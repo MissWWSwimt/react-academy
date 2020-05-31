@@ -1,25 +1,69 @@
 import React from 'react'
-import shortid from 'shortid'
 import Todo from './Todo'
 import style from './todo.module.css'
 import Priorities from './Priority'
 
 function TodoList() {
-  const [todos, setTodos] = React.useState([])
-  const [title, setTitle] = React.useState('')
-  const [desc, setDesc] = React.useState('')
-  const [priority, setPriority] = React.useState('normal')
+  //const [todos, setTodos] = React.useState([])
+  //const [title, setTitle] = React.useState('')
+  //const [desc, setDesc] = React.useState('')
+  //const [priority, setPriority] = React.useState('normal')
+
+  const initialState = {
+    todos: [],
+    title: '',
+    desc:'',
+    priority:'normal'
+  }
+
+
+  const reducer = (state, action) => {
+    switch (action.type) {
+      case 'ADD_TITLE':
+        return {
+          ...state, 
+          title: action.title
+        };
+      case 'ADD_DESC':
+        return {
+          ...state, 
+          desc: action.desc
+        };
+      case 'ADD_PRIORITY':
+        return {
+          ...state, 
+          priority: action.priority
+        };
+      case 'ADD_TODO':
+        return {
+          ...state, 
+          todos: [...state.todos, action.newTodos]
+        };
+      case 'CLEAR_FIELDS':
+        return {
+          ...state, 
+          title: '',
+          desc: '',
+          priority: 'normal'
+        };
+      default:
+        throw new Error();
+    }
+  }
+
+  const [state, dispatch] = React.useReducer(reducer, initialState)
+  const {todos, title, desc, priority} = state
 
   const handleAdd = (e) => {
     e.preventDefault()
-    const newTodo = {
-      id: shortid.generate(),
+    const newTodos = {
       title, desc, priority
     }
-    setTitle('')
-    setDesc('')
-    setPriority('normal')
-    setTodos([ ...todos, newTodo ])
+    dispatch({type: 'ADD_TITLE', title: e.target.value })
+    dispatch({type: 'ADD_DESC', desc: e.target.value })
+    dispatch({type: 'ADD_PRIORITY', priority: priority})
+    dispatch({type:'ADD_TODO', newTodos: newTodos })
+    dispatch({type:'CLEAR_FIELDS'})
   }
 
   return (
@@ -30,23 +74,23 @@ function TodoList() {
           type="text" 
           placeholder="Название" 
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => dispatch({ type: 'ADD_TITLE', title: e.target.value })}
         />
         <textarea 
           placeholder="Описание" 
           value={desc}
-          onChange={(e) => setDesc(e.target.value)}
+          onChange={(e) => dispatch({ type: 'ADD_DESC', desc: e.target.value })}
         />
         <Priorities 
           priority={priority}
-          setPriority={setPriority}
+          setPriority={(radio) => dispatch({type: 'ADD_PRIORITY', priority: radio})}
         />
         <button onClick={handleAdd} >
           Добавить
         </button>
       </form>
       <div className={style.list}>
-      { todos.map(c => <Todo key={c.id} todo={c}/>) }
+      { todos.map((c, index) => <Todo key={index} todo={c}/>) }
       </div>
     </div>
   )
